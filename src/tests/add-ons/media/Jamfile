@@ -1,3 +1,0 @@
-SubDir HAIKU_TOP src tests add-ons media ;
-
-SubInclude HAIKU_TOP src tests add-ons media plugins ;

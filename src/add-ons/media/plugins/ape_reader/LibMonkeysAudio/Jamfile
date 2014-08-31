@@ -1,8 +1,0 @@
-SubDir HAIKU_TOP src add-ons media plugins ape_reader LibMonkeysAudio ;
-
-SubDirHdrs [ FDirName $(SUBDIR) ../MAClib ] ;
-
-StaticLibrary libMonkeysAudio.a :
-	PositionBridgeIO.cpp
-	LibMonkeysAudio.cpp
-	;

@@ -1,8 +1,0 @@
-SubDir HAIKU_TOP src add-ons tracker opentargetfolder ;
-
-Application Open\ Target\ Folder : 
-	opentargetfolder.cpp
-
-	: be tracker [ TargetLibsupc++ ]
-	: opentargetfolder.rdef
-;
