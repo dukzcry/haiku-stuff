@@ -23,6 +23,15 @@
 
 #include <string.h>
 
+//#undef TRACE(x...)
+//#define TRACE_PS2_DEV 1
+#ifdef TRACE_PS2_DEV
+#define TRACE(x...) dprintf(x)
+#else
+#define TRACE(x...)
+#endif
+
+#define SYNAPTICS_HACK 1
 
 ps2_dev ps2_device[PS2_DEVICE_COUNT];
 
@@ -76,6 +85,15 @@ ps2_dev_detect_pointing(ps2_dev* dev, device_hooks** hooks)
 		*hooks = &gStandardMouseDeviceHooks;
 		goto dev_found;
 	}
+
+#ifdef SYNAPTICS_HACK
+	// Synaptics doesn't bear mess from probe_trackpoint()
+	status = ps2_reset_mouse(dev);
+	if (status != B_OK) {
+		INFO("ps2: reset failed\n");
+		return B_ERROR;
+	}
+#endif
 
 	status = probe_synaptics(dev);
 	if (status == B_OK) {
