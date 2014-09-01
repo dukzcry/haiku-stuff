@@ -1,0 +1,78 @@
+Use 'AddOptionalHaikuImagePackages Chicken' from UserBuildConfig
+--- OptionalPackages.orig	2012-07-18 20:24:47.685768704 +0400
++++ /boot/home/src/build/jam/OptionalPackages	2012-07-18 20:44:57.443285504 +0400
+@@ -31,6 +31,7 @@ if $(HAIKU_ADD_ALTERNATIVE_GCC_LIBS) = 1
+ #   Caya                    - a multiprotocol im client
+ #	CCache					- fast compiler cache
+ #	CDRecord				- the command line CD writing tools
++#	Chicken					- Scheme-to-C compiler
+ #	Clang					- the LLVM C and C++ compiler (llvm, libs, headers)
+ #	Clockwerk				- native audio/video compositing
+ #	CLucene					- indexed file search
+@@ -419,6 +420,24 @@ if [ IsOptionalHaikuImagePackageAdded CD
+ }
+ 
+ 
++# Chicken
++if [ IsOptionalHaikuImagePackageAdded Chicken ] {
++	if $(TARGET_ARCH) != x86 {
++		Echo "No optional package Chicken available for $(TARGET_ARCH)" ;
++	} else if $(HAIKU_GCC_VERSION[1]) >= 4 {
++		InstallOptionalHaikuImagePackage
++			chicken-4.7.0-x86-gcc4-2011-05-25.zip
++			: http://ports-space.haiku-files.org/dev-scheme/\
++				chicken-4.7.0-x86-gcc4-2011-05-25.zip ;
++	} else {
++		InstallOptionalHaikuImagePackage
++			chicken-4.5.0-x86-gcc2-2010-05-21.zip
++			: //ports-space.haiku-files.org/dev-scheme/\
++				chicken-4.5.0-x86-gcc2-2010-05-21.zip ;
++	}
++}
++
++
+ # Clang
+ if [ IsOptionalHaikuImagePackageAdded Clang ] {
+ 	if $(TARGET_ARCH) != x86 {
+--- Jamrules.orig	2012-07-20 23:41:10.745799680 +0400
++++ /boot/home/src/Jamrules	2012-07-20 23:41:57.075235328 +0400
+@@ -53,6 +53,8 @@ include [ FDirName $(HAIKU_BUILD_RULES_D
+ include [ FDirName $(HAIKU_BUILD_RULES_DIR) TestsRules ] ;
+ include [ FDirName $(HAIKU_BUILD_RULES_DIR) BuildSetup ] ;
+ 
++include [ FDirName $(HAIKU_BUILD_RULES_DIR) ChickenRules ] ;
++
+ # Declare no-op user-overridable build rules.
+ rule UserBuildConfigRulePostBuildTargets	{ }
+ rule UserBuildConfigRulePreImage			{ }
+--- /boot/home/src/build/jam/OverriddenJamRules.orig	2012-07-19 20:13:24.233570304 +0400
++++ /boot/home/src/build/jam/OverriddenJamRules	2012-07-21 02:57:09.892338176 +0400
+@@ -159,6 +159,7 @@ rule Object
+ 		case *.o :	return ;
+ 	    case .s :	As $(<) : $(>) ;
+ 	    case .S :	As $(<) : $(>) ;
++	    case .scm : Scheme $(<) : $(>) ;
+ 	    case .y :	if [ on $(2) return $(GENERATE_C++) ] {
+ 	    				InheritPlatform $(1:S=.cpp) $(1:S=.hpp) : $(1) ;
+ 						C++ $(1) : $(1:S=.cpp) ;
+@@ -224,6 +225,20 @@ actions Lex
+ 	$(LEX) $(LEXFLAGS) -o$(1) $(2)
+ }
+ 
++rule Scheme
++{
++        Depends $(1) : $(2) ;
++        MakeLocateArch $(1) ;
++        LocalClean clean : $(1) ;
++
++	Scheme1 $(1) : $(2) $(SCHEMEFLAGS) ;
++}
++
++actions Scheme1
++{
++        eval csc -o $(1) -c $(2[1]) `echo $(2[2]) | sed 's#.*/-#-#'` ;
++}
++
+ rule Yacc
+ {
+ 	local source = $(1[1]) ;
